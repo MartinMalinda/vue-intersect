@@ -65,7 +65,7 @@ export default defineComponent({
         return;
       }
 
-      observer.observe(defaultSlot[0].elm);
+      observer.observe(defaultSlot[0].el);
     });
 
     onUnmounted(function () {
