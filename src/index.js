@@ -1,9 +1,9 @@
-import Vue from 'vue'
+
 
 const warn = (msg) => {
-  if (!Vue.config.silent) {
+  // if (!Vue.config.silent) {
     console.warn(msg)
-  }
+  // }
 }
 
 export default {

@@ -1,9 +1,9 @@
-import Vue from 'vue';
+
 
 var warn = function warn(msg) {
-  if (!Vue.config.silent) {
-    console.warn(msg);
-  }
+  // if (!Vue.config.silent) {
+  console.warn(msg);
+  // }
 };
 
 export default {
