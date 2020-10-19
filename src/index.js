@@ -1,3 +1,4 @@
+import { defineComponent, onUnmounted, nextTick } from "vue"
 
 
 const warn = (msg) => {
@@ -6,7 +7,7 @@ const warn = (msg) => {
   // }
 }
 
-export default {
+export default defineComponent({
   name: 'intersect',
   abstract: true,
   props: {
@@ -27,41 +28,42 @@ export default {
     },
     once: Boolean
   },
-  mounted() {
-    this.observer = new IntersectionObserver((entries) => {
+  setup(props, { slots, emit }) {
+    const observer = new IntersectionObserver((entries) => {
       if (!entries[0].isIntersecting) {
-        this.$emit('leave', [entries[0]])
+        emit('leave', [entries[0]])
       } else {
-        this.$emit('enter', [entries[0]])
-        if (this.$props.once) {
-          this.observer.disconnect();
+        emit('enter', [entries[0]])
+        if (props.once) {
+          observer.disconnect();
           return;
         }
       }
 
-      this.$emit('change', [entries[0]])
+      emit('change', [entries[0]])
     }, {
-      threshold: this.threshold,
-      root: this.root,
-      rootMargin: this.rootMargin
+      threshold: props.threshold,
+      root: props.root,
+      rootMargin: props.rootMargin
     })
 
-    this.$nextTick(() => {
-      if (this.$slots.default && this.$slots.default.length > 1) {
+    const defaultSlot = slots.default && slots.default();
+
+    nextTick(() => {
+      if (defaultSlot && defaultSlot.length > 1) {
         warn('[VueIntersect] You may only wrap one element in a <intersect> component.')
-      } else if (!this.$slots.default || this.$slots.default.length < 1) {
+      } else if (!defaultSlot || defaultSlot.length < 1) {
         warn('[VueIntersect] You must have one child inside a <intersect> component.')
         return
       }
 
-      this.observer.observe(this.$slots.default[0].elm)
+      observer.observe(defaultSlot[0].elm);
     })
+
+    onUnmounted(() => {
+      observer.disconnect();
+    });
+
+    return () => defaultSlot;
   },
-  destroyed() {
-    this.$emit('destroyed')
-    this.observer.disconnect()
-  },
-  render() {
-    return this.$slots.default ? this.$slots.default[0] : null
-  }
-}
+});

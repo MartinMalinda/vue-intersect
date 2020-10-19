@@ -1,4 +1,4 @@
-
+import { defineComponent, onUnmounted, nextTick } from "vue";
 
 var warn = function warn(msg) {
   // if (!Vue.config.silent) {
@@ -6,7 +6,7 @@ var warn = function warn(msg) {
   // }
 };
 
-export default {
+export default defineComponent({
   name: 'intersect',
   abstract: true,
   props: {
@@ -33,43 +33,47 @@ export default {
     },
     once: Boolean
   },
-  mounted: function mounted() {
-    var _this = this;
+  setup: function setup(props, _ref) {
+    var slots = _ref.slots,
+        emit = _ref.emit;
 
-    this.observer = new IntersectionObserver(function (entries) {
+    var observer = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) {
-        _this.$emit('leave', [entries[0]]);
+        emit('leave', [entries[0]]);
       } else {
-        _this.$emit('enter', [entries[0]]);
-        if (_this.$props.once) {
-          _this.observer.disconnect();
+        emit('enter', [entries[0]]);
+        if (props.once) {
+          observer.disconnect();
           return;
         }
       }
 
-      _this.$emit('change', [entries[0]]);
+      emit('change', [entries[0]]);
     }, {
-      threshold: this.threshold,
-      root: this.root,
-      rootMargin: this.rootMargin
+      threshold: props.threshold,
+      root: props.root,
+      rootMargin: props.rootMargin
     });
 
-    this.$nextTick(function () {
-      if (_this.$slots.default && _this.$slots.default.length > 1) {
+    var defaultSlot = slots.default && slots.default();
+
+    nextTick(function () {
+      if (defaultSlot && defaultSlot.length > 1) {
         warn('[VueIntersect] You may only wrap one element in a <intersect> component.');
-      } else if (!_this.$slots.default || _this.$slots.default.length < 1) {
+      } else if (!defaultSlot || defaultSlot.length < 1) {
         warn('[VueIntersect] You must have one child inside a <intersect> component.');
         return;
       }
 
-      _this.observer.observe(_this.$slots.default[0].elm);
+      observer.observe(defaultSlot[0].elm);
     });
-  },
-  destroyed: function destroyed() {
-    this.$emit('destroyed');
-    this.observer.disconnect();
-  },
-  render: function render() {
-    return this.$slots.default ? this.$slots.default[0] : null;
+
+    onUnmounted(function () {
+      observer.disconnect();
+    });
+
+    return function () {
+      return defaultSlot;
+    };
   }
-};
+});
