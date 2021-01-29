@@ -64,15 +64,17 @@ export default defineComponent({
       var defaultSlot = slots.default && slots.default();
 
       if (!didSetupObserver) {
-        didSetupObserver = true;
-        if (defaultSlot && defaultSlot.length > 1) {
-          warn('[VueIntersect] You may only wrap one element in a <intersect> component.');
-        } else if (!defaultSlot || defaultSlot.length < 1) {
-          warn('[VueIntersect] You must have one child inside a <intersect> component.');
-          return;
-        }
+        nextTick(function () {
+          didSetupObserver = true;
+          if (defaultSlot && defaultSlot.length > 1) {
+            warn('[VueIntersect] You may only wrap one element in a <intersect> component.');
+          } else if (!defaultSlot || defaultSlot.length < 1) {
+            warn('[VueIntersect] You must have one child inside a <intersect> component.');
+            return;
+          }
 
-        observer.observe(defaultSlot[0].el);
+          observer.observe(defaultSlot[0].el);
+        });
       }
 
       return defaultSlot;
