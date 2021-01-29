@@ -47,23 +47,28 @@ export default defineComponent({
       rootMargin: props.rootMargin
     })
 
-    const defaultSlot = slots.default && slots.default();
-
-    nextTick(() => {
-      if (defaultSlot && defaultSlot.length > 1) {
-        warn('[VueIntersect] You may only wrap one element in a <intersect> component.')
-      } else if (!defaultSlot || defaultSlot.length < 1) {
-        warn('[VueIntersect] You must have one child inside a <intersect> component.')
-        return
-      }
-
-      observer.observe(defaultSlot[0].el);
-    })
-
+    
     onUnmounted(() => {
       observer.disconnect();
     });
+    
+    let didSetupObserver = false;
+    return () => {
+      const defaultSlot = slots.default && slots.default();
+  
+      if (!didSetupObserver) {
+        didSetupObserver = true;
+        if (defaultSlot && defaultSlot.length > 1) {
+          warn('[VueIntersect] You may only wrap one element in a <intersect> component.')
+        } else if (!defaultSlot || defaultSlot.length < 1) {
+          warn('[VueIntersect] You must have one child inside a <intersect> component.')
+          return
+        }
+  
+        observer.observe(defaultSlot[0].el);
+      }
 
-    return () => defaultSlot;
+      return defaultSlot;
+    };
   },
 });
